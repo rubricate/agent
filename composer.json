@@ -1,0 +1,43 @@
+{
+    "name": "rubricate/agent",
+    "description": "Dentifies the platform, browser, robot, or mobile device of the browsing agent",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Estefanio N Santos",
+            "email": "estefanions@gmail.com"
+        },
+        {
+            "name": "Codeigniter v1",
+            "email": "admin@codeigniter.com"
+        },
+        {
+            "name": "Akin Ali Beer",
+            "email": "akinalibeer@gmail.com"
+        }
+    ],
+    "keywords": [
+        "user-agent",
+        "browser-detection",
+        "mobile-detection",
+        "parser",
+        "agent",
+        "php54",
+        "solid",
+        "rubricate",
+        "infrastructure",
+        "http-header"
+    ],
+    "require": {
+        "php": ">=5.4"
+    },
+    "support": {
+        "docs"   : "https://rubricate.github.io/components/agent",
+        "source" : "https://github.com/rubricate/agent"
+    },
+    "autoload": {
+        "psr-4": {
+            "Rubricate\\Agent\\": "Rubricate/Agent/"
+        }
+    }
+}
