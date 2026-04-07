@@ -29,7 +29,7 @@
         "http-header"
     ],
     "require": {
-        "php": ">=5.4"
+        "php": ">=8.2"
     },
     "support": {
         "docs"   : "https://rubricate.github.io/components/agent",
