@@ -2,7 +2,7 @@
 
 namespace Rubricate\Agent;
 
-class UserAgent
+class UserAgent implements IBaseAgent, IDetectionAgent, IBrowserAgent
 {
     private $agent = null;
     private $isBrowser = false;
