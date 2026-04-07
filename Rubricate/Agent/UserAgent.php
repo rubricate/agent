@@ -1,58 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Rubricate\Agent;
 
-class UserAgent implements IBaseAgent, IDetectionAgent, IBrowserAgent
+readonly class UserAgent implements IBaseAgent, IDetectionAgent, IBrowserAgent
 {
-    private $agent = null;
-    private $isBrowser = false;
-    private $isRobot = false;
-    private $isMobile = false;
+    private ?string $agent;
+    private bool $isBrowser;
+    private bool $isRobot;
+    private bool $isMobile;
 
-    private $languages = [];
-    private $charsets = [];
+    private array $languages;
+    private array $charsets;
 
-    private $platforms = [];
-    private $browsers = [];
-    private $mobiles = [];
-    private $robots = [];
+    private array $platforms;
+    private array $browsers;
+    private array $mobiles;
+    private array $robots;
 
-    private $platform = 'unknown platform';
-    private $browser = '';
-    private $version = '';
-    private $mobile = '';
-    private $robot = '';
+    private string $platform;
+    private string $browser;
+    private string $version;
+    private string $mobile;
+    private string $robot;
 
     public function __construct(array $config = [])
     {
-        if (isset($_SERVER['HTTP_USER_AGENT'])) {
-            $this->agent = trim($_SERVER['HTTP_USER_AGENT']);
-        }
+        $this->agent = isset($_SERVER['HTTP_USER_AGENT'])
+            ? trim((string) $_SERVER['HTTP_USER_AGENT'])
+            : null;
 
-        if (!empty($config)) {
-            $this->initializeConfig($config);
-        }
+        $this->platforms = $config['platforms'] ?? [];
+        $this->browsers  = $config['browsers'] ?? [];
+        $this->mobiles   = $config['mobiles'] ?? [];
+        $this->robots    = $config['robots'] ?? [];
+
+        $this->languages = [];
+        $this->charsets  = [];
+
+        $this->platform = 'unknown platform';
+        $this->browser  = '';
+        $this->version  = '';
+        $this->mobile   = '';
+        $this->robot    = '';
+
+        $this->isBrowser = false;
+        $this->isRobot   = false;
+        $this->isMobile  = false;
 
         if ($this->agent) {
             $this->compileData();
         }
     }
 
-    private function initializeConfig(array $config): void
-    {
-        $this->platforms = $config['platforms'] ?? [];
-        $this->browsers  = $config['browsers'] ?? [];
-        $this->mobiles   = $config['mobiles'] ?? [];
-        $this->robots    = $config['robots'] ?? [];
-    }
-
     private function compileData(): void
     {
         $this->setPlatform();
 
-        $methods = ['setRobot', 'setBrowser', 'setMobile'];
-
-        foreach ($methods as $method) {
+        foreach (['setRobot', 'setBrowser', 'setMobile'] as $method) {
             if ($this->$method()) {
                 break;
             }
@@ -61,12 +67,10 @@ class UserAgent implements IBaseAgent, IDetectionAgent, IBrowserAgent
 
     private function setPlatform(): bool
     {
-        if (is_array($this->platforms) && count($this->platforms) > 0) {
-            foreach ($this->platforms as $key => $val) {
-                if (preg_match('|' . preg_quote($key) . '|i', $this->agent)) {
-                    $this->platform = $val;
-                    return true;
-                }
+        foreach ($this->platforms as $key => $val) {
+            if (preg_match('|' . preg_quote((string) $key) . '|i', $this->agent)) {
+                $this->platform = (string) $val;
+                return true;
             }
         }
 
@@ -75,15 +79,13 @@ class UserAgent implements IBaseAgent, IDetectionAgent, IBrowserAgent
 
     private function setBrowser(): bool
     {
-        if (is_array($this->browsers) && count($this->browsers) > 0) {
-            foreach ($this->browsers as $key => $val) {
-                if (preg_match('|' . preg_quote($key) . '.*?([0-9\.]+)|i', $this->agent, $match)) {
-                    $this->isBrowser = true;
-                    $this->version = $match[1];
-                    $this->browser = $val;
-                    $this->setMobile();
-                    return true;
-                }
+        foreach ($this->browsers as $key => $val) {
+            if (preg_match('|' . preg_quote((string) $key) . '.*?([0-9\.]+)|i', $this->agent, $match)) {
+                $this->isBrowser = true;
+                $this->version = $match[1];
+                $this->browser = (string) $val;
+                $this->setMobile();
+                return true;
             }
         }
 
@@ -92,13 +94,11 @@ class UserAgent implements IBaseAgent, IDetectionAgent, IBrowserAgent
 
     private function setRobot(): bool
     {
-        if (is_array($this->robots) && count($this->robots) > 0) {
-            foreach ($this->robots as $key => $val) {
-                if (preg_match('|' . preg_quote($key) . '|i', $this->agent)) {
-                    $this->isRobot = true;
-                    $this->robot = $val;
-                    return true;
-                }
+        foreach ($this->robots as $key => $val) {
+            if (preg_match('|' . preg_quote((string) $key) . '|i', $this->agent)) {
+                $this->isRobot = true;
+                $this->robot = (string) $val;
+                return true;
             }
         }
 
@@ -107,56 +107,42 @@ class UserAgent implements IBaseAgent, IDetectionAgent, IBrowserAgent
 
     private function setMobile(): bool
     {
-        if (is_array($this->mobiles) && count($this->mobiles) > 0) {
-            foreach ($this->mobiles as $key => $val) {
-                if (false !== (strpos(strtolower($this->agent), (string) $key))) {
-                    $this->isMobile = true;
-                    $this->mobile = $val;
-                    return true;
-                }
+        foreach ($this->mobiles as $key => $val) {
+            if (str_contains(strtolower($this->agent), strtolower((string) $key))) {
+                $this->isMobile = true;
+                $this->mobile = (string) $val;
+                return true;
             }
         }
 
         return false;
     }
 
-    public function isBrowser($key = null): bool
+    public function isBrowser(?string $key = null): bool
     {
         if (!$this->isBrowser) {
             return false;
         }
 
-        if ($key === null) {
-            return true;
-        }
-
-        return array_key_exists($key, $this->browsers) && $this->browser === $this->browsers[$key];
+        return $key === null || (isset($this->browsers[$key]) && $this->browser === $this->browsers[$key]);
     }
 
-    public function isRobot($key = null): bool
+    public function isRobot(?string $key = null): bool
     {
         if (!$this->isRobot) {
             return false;
         }
 
-        if ($key === null) {
-            return true;
-        }
-
-        return array_key_exists($key, $this->robots) && $this->robot === $this->robots[$key];
+        return $key === null || (isset($this->robots[$key]) && $this->robot === $this->robots[$key]);
     }
 
-    public function isMobile($key = null): bool
+    public function isMobile(?string $key = null): bool
     {
         if (!$this->isMobile) {
             return false;
         }
 
-        if ($key === null) {
-            return true;
-        }
-
-        return array_key_exists($key, $this->mobiles) && $this->mobile === $this->mobiles[$key];
+        return $key === null || (isset($this->mobiles[$key]) && $this->mobile === $this->mobiles[$key]);
     }
 
     public function isReferral(): bool
@@ -196,30 +182,24 @@ class UserAgent implements IBaseAgent, IDetectionAgent, IBrowserAgent
 
     public function getReferrer(): string
     {
-        return empty($_SERVER['HTTP_REFERER']) ? '' : trim($_SERVER['HTTP_REFERER']);
+        return trim((string) ($_SERVER['HTTP_REFERER'] ?? ''));
     }
 
     public function getLanguages(): array
     {
-        if (count($this->languages) === 0) {
-            $this->setLanguages();
-        }
-
-        return $this->languages;
+        return $this->languages ?: $this->parseLanguages();
     }
 
-    private function setLanguages(): void
+    private function parseLanguages(): array
     {
         $acceptLang = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
 
-        if ($acceptLang !== '') {
-            $languages = preg_replace('/(;q=[0-9\.]+)/i', '', strtolower(trim($acceptLang)));
-            $this->languages = explode(',', $languages);
+        if ($acceptLang === '') {
+            return ['undefined'];
         }
 
-        if (count($this->languages) === 0) {
-            $this->languages = ['undefined'];
-        }
+        $languages = preg_replace('/(;q=[0-9\.]+)/i', '', strtolower(trim($acceptLang)));
+        return explode(',', $languages);
     }
 
     public function acceptLang(string $lang = 'en'): bool
@@ -227,3 +207,4 @@ class UserAgent implements IBaseAgent, IDetectionAgent, IBrowserAgent
         return in_array(strtolower($lang), $this->getLanguages(), true);
     }
 }
+
