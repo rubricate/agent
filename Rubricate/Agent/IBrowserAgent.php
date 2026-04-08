@@ -4,8 +4,8 @@ namespace Rubricate\Agent;
 
 interface IBrowserAgent
 {
-    public function getBrowser();
-    public function getVersion();
-    public function getLanguages();
-    public function acceptLang($lang = 'en');
+    public function getBrowser(): string;
+    public function getVersion(): string;
+    public function getLanguages(): array;
+    public function acceptLang(string $lang = 'en'): bool;
 }
