@@ -24,6 +24,10 @@ $config = [
         'windows nt 10.0' => 'Windows 10',
         'android'         => 'Android',
         'iphone'          => 'iPhone',
+        'linux'   => 'Linux',
+        'ubuntu'  => 'Ubuntu Linux',
+        'fedora'  => 'Fedora Linux',
+        'x11'     => 'Linux (Generic)'
     ],
     'browsers' => [
         'Chrome'  => 'Chrome',
